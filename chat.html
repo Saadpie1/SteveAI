@@ -1,207 +1,150 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Steve AI</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: '#f97316',
-              dark: '#1a1a1a',
-              surface: '#2a2a2a',
-            },
-            fontFamily: {
-              hand: ['"Patrick Hand"', 'cursive'],
-            },
-          },
-        },
-      };
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet" />
-    <style>
-      body {
-        font-family: 'Patrick Hand', cursive;
-      }
-      .bubble {
-        animation: slide-up 0.3s ease-in-out;
-        word-wrap: break-word;
-      }
-      @keyframes slide-up {
-        from {
-          transform: translateY(20px);
-          opacity: 0;
-        }
-        to {
-          transform: translateY(0);
-          opacity: 1;
-        }
-      }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  </head>
-  <body class="bg-dark text-white min-h-screen flex flex-col">
-    <div class="flex justify-between items-center px-4 py-2 border-b border-gray-700">
-      <h1 class="text-3xl font-bold">Steve AI</h1>
-      <div class="flex gap-4 items-center">
-        <span id="status" class="text-sm text-gray-400">🔌 Offline</span>
-        <button id="toggleTheme" class="text-sm bg-gray-700 px-3 py-1 rounded hover:bg-gray-600">Toggle Theme</button>
-        <button id="exportBtn" class="text-sm bg-green-600 px-3 py-1 rounded hover:bg-green-500">📜 Export</button>
-        <button id="logoutBtn" class="text-sm bg-red-600 px-3 py-1 rounded hover:bg-red-500">🔐 Logout</button>
-      </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Steve AI Chat</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { theme: { extend: { colors:{primary:'#f97316', dark:'#1a1a1a', surface:'#2a2a2a'}, fontFamily:{hand:['"Patrick Hand"', 'cursive']}}}};</script>
+  <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>body{font-family:'Patrick Hand', cursive;}.bubble{animation:slide-up .3s ease-in-out;word-wrap:break-word;}@keyframes slide-up{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}</style>
+</head>
+<body class="bg-dark text-white min-h-screen flex flex-col">
+  <div class="flex justify-between items-center px-4 py-2 border-b border-gray-700">
+    <h1 class="text-3xl font-bold">Steve AI</h1>
+    <div class="flex gap-2 items-center">
+      <span id="status" class="text-sm text-gray-400">🔌 Offline</span>
+      <button id="toggleTheme" class="text-sm bg-gray-700 px-3 py-1 rounded hover:bg-gray-600">Toggle Theme</button>
+      <button id="exportBtn" class="text-sm bg-green-600 px-3 py-1 rounded hover:bg-green-500">📜 Export</button>
+      <button id="shareBtn" class="text-sm bg-blue-600 px-3 py-1 rounded hover:bg-blue-500">🔗 Share</button>
+      <button id="regenerateBtn" class="text-sm bg-yellow-600 px-3 py-1 rounded hover:bg-yellow-500">🔄 Regenerate</button>
+      <button id="logoutBtn" class="text-sm bg-red-600 px-3 py-1 rounded hover:bg-red-500">🔐 Logout</button>
     </div>
+  </div>
+  <div id="chatBox" class="flex-1 overflow-y-auto px-4 py-6 space-y-4 flex flex-col"></div>
+  <div class="w-full max-w-3xl mx-auto px-4 py-3 flex gap-2 items-end">
+    <textarea id="inputBox" rows="1" placeholder="Ask anything..."
+      class="flex-1 resize-none p-3 rounded-lg bg-[#1f1f1f] border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"></textarea>
+    <button id="sendBtn" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg">Send</button>
+  </div>
 
-    <div id="chatBox" class="flex-1 overflow-y-auto px-4 py-6 space-y-4 flex flex-col"></div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-    <div class="w-full max-w-3xl mx-auto px-4 py-3">
-      <div class="flex items-end gap-2">
-        <textarea id="inputBox" rows="1" placeholder="Ask anything..."
-          class="w-full resize-none p-3 rounded-lg bg-[#1f1f1f] border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"></textarea>
-        <button id="sendBtn" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg">Send</button>
-      </div>
-    </div>
+    const config = {
+      apiKey: "AIzaSyCUic123GTi1M82hV_7txQ8xTbBVfjn3r8",
+      authDomain: "steveai-f4a56.firebaseapp.com",
+      projectId: "steveai-f4a56",
+      storageBucket: "steveai-f4a56.firebasestorage.app",
+      messagingSenderId: "852076577383",
+      appId: "1:852076577383:web:631149327a19283d750ac2",
+      measurementId: "G-RH3XX95B41"
+    };
+    const app = initializeApp(config);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-      import {
-        getFirestore, collection, addDoc,
-        query, orderBy, onSnapshot
-      } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+    const chatBox = document.getElementById("chatBox");
+    const inputBox = document.getElementById("inputBox");
+    const sendBtn = document.getElementById("sendBtn");
+    const status = document.getElementById("status");
+    const toggleTheme = document.getElementById("toggleTheme");
+    const exportBtn = document.getElementById("exportBtn");
+    const regenerateBtn = document.getElementById("regenerateBtn");
+    const shareBtn = document.getElementById("shareBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
 
-      // Firebase config
-      const firebaseConfig = {
-        apiKey: "AIzaSyCUic123GTi1M82hV_7txQ8xTbBVfjn3r8",
-        authDomain: "steveai-f4a56.firebaseapp.com",
-        projectId: "steveai-f4a56",
-        storageBucket: "steveai-f4a56.firebasestorage.app",
-        messagingSenderId: "852076577383",
-        appId: "1:852076577383:web:631149327a19283d750ac2",
-        measurementId: "G-RH3XX95B41"
-      };
+    let userId, lastPrompt, lastBotMsg, messages=[];
 
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const db = getFirestore(app);
+    toggleTheme.onclick = ()=>{
+      document.body.classList.toggle("bg-dark");
+      document.body.classList.toggle("bg-white");
+      document.body.classList.toggle("text-white");
+      document.body.classList.toggle("text-black");
+    };
+    window.addEventListener("online", ()=>status.textContent="🟢 Online");
+    window.addEventListener("offline", ()=>status.textContent="🔌 Offline");
 
-      const chatBox = document.getElementById('chatBox');
-      const inputBox = document.getElementById('inputBox');
-      const sendBtn = document.getElementById('sendBtn');
-      const status = document.getElementById('status');
-      const toggleTheme = document.getElementById('toggleTheme');
-      const exportBtn = document.getElementById('exportBtn');
-      const logoutBtn = document.getElementById('logoutBtn');
+    function scrollBottom(){chatBox.scrollTo({top:chatBox.scrollHeight,behavior:"smooth"});}
 
-      let userId = null;
-      let messages = [];
+    function createBubble(msg){
+      const d=document.createElement("div");
+      d.className=`bubble max-w-[90%] w-fit rounded-xl px-4 py-3 whitespace-pre-wrap flex ${msg.from=="user"?"self-end bg-primary text-white":"self-start bg-surface text-gray-100"}`;
+      const av=document.createElement("span");
+      av.textContent=msg.from=="user"?"🧑": "🤖";
+      av.className="mr-2";
+      const ct=document.createElement("div");
+      ct.innerHTML=marked.parse(msg.text);
+      d.append(av,ct);
+      chatBox.appendChild(d);scrollBottom();
+      return d;
+    }
 
-      toggleTheme.onclick = () => {
-        document.body.classList.toggle('bg-dark');
-        document.body.classList.toggle('bg-white');
-        document.body.classList.toggle('text-white');
-        document.body.classList.toggle('text-black');
-      };
+    function saveMsg(from,text){
+      return addDoc(collection(db,"chats",userId,"messages"),{from,text,timestamp:new Date().toISOString()});
+    }
 
-      function updateStatus() {
-        status.textContent = navigator.onLine ? '🟢 Online' : '🔌 Offline';
-      }
-      window.addEventListener('online', updateStatus);
-      window.addEventListener('offline', updateStatus);
-      updateStatus();
-
-      function scrollToBottom() {
-        chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
-      }
-
-      function addMessageToDB(from, text) {
-        return addDoc(collection(db, "chats", userId, "messages"), {
-          from, text, timestamp: new Date().toISOString()
-        });
-      }
-
-      function createBubbleHTML(msg) {
-        const emoji = msg.from === "user" ? "🧑" : "🤖";
-        const container = document.createElement('div');
-        container.className = `bubble max-w-[90%] w-fit rounded-xl px-4 py-3 whitespace-pre-wrap break-words flex ${
-          msg.from === 'user' ? 'self-end bg-primary text-white' : 'self-start bg-surface text-gray-100'
-        }`;
-        const avatar = document.createElement('span');
-        avatar.textContent = emoji;
-        avatar.className = 'mr-2';
-        const content = document.createElement('div');
-        content.innerHTML = marked.parse(msg.text);
-        container.appendChild(avatar);
-        container.appendChild(content);
-        chatBox.appendChild(container);
-        scrollToBottom();
-      }
-
-      onAuthStateChanged(auth, (user) => {
-        if (!user) return window.location = "login.html";
-        userId = user.uid;
-        const q = query(collection(db, "chats", userId, "messages"), orderBy("timestamp"));
-        onSnapshot(q, snapshot => {
-          chatBox.innerHTML = '';
-          messages = [];
-          snapshot.forEach(doc => {
-            const msg = doc.data();
-            messages.push(msg);
-            createBubbleHTML(msg);
-          });
-        });
+    onAuthStateChanged(auth,user=>{
+      if(!user) return window.location="login.html";
+      userId=user.uid;
+      const q=query(collection(db,"chats",userId,"messages"),orderBy("timestamp"));
+      onSnapshot(q,snap=>{
+        chatBox.innerHTML="";messages=[];
+        snap.forEach(doc=>{const m=doc.data();messages.push(m);createBubble(m);});
       });
+    });
 
-      async function sendPrompt() {
-        const prompt = inputBox.value.trim();
-        if (!prompt) return;
-        inputBox.value = ''; inputBox.style.height = 'auto';
-
-        await addMessageToDB('user', prompt);
-
-        const loadingMsg = { from: 'bot', text: 'Typing...' };
-        createBubbleHTML(loadingMsg);
-
-        try {
-          const res = await fetch("https://steveai-production.up.railway.app/chat", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: prompt })
-          });
-          const data = await res.json();
-          messages.pop(); chatBox.lastChild.remove(); // remove loading
-
-          const botText = data.content || 'Error: No response';
-          await addMessageToDB('bot', botText);
-        } catch {
-          messages.pop(); chatBox.lastChild.remove();
-          const errorMsg = { from: 'bot', text: 'Connection error' };
-          await addMessageToDB('bot', errorMsg.text);
-        }
+    async function send(){
+      const prompt=inputBox.value.trim();if(!prompt)return;
+      inputBox.value="";inputBox.style.height="auto";
+      lastPrompt=prompt;
+      const um={from:"user",text:prompt};
+      messages.push(um);createBubble(um);await saveMsg("user",prompt);
+      const loading=createBubble({from:"bot",text:"..."});lastBotMsg=loading;
+      try{
+        const res=await fetch("https://steveai-production.up.railway.app/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:prompt})});
+        const j=await res.json();
+        const bot=j.content||"⚠️ No response.";
+        await saveMsg("bot",bot);
+        messages.push({from:"bot",text:bot});
+        chatBox.removeChild(loading);
+        lastBotMsg=createBubble({from:"bot",text:bot});
+      }catch(e){
+        chatBox.removeChild(loading);
+        lastBotMsg=createBubble({from:"bot",text:"⚠️ Error. Try again."});
+        await saveMsg("bot","⚠️ Error. Try again.");
       }
+    }
 
-      sendBtn.onclick = sendPrompt;
-      inputBox.addEventListener('keypress', e => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          sendPrompt();
-        }
-      });
+    sendBtn.onclick=send;
+    inputBox.addEventListener("keypress",e=>{if(e.key=="Enter"&&!e.shiftKey){e.preventDefault();send();}});
 
-      exportBtn.onclick = () => {
-        const text = messages.map(m =>
-          `${m.from === 'user' ? 'You' : 'SteveAI'}: ${m.text}`
-        ).join('\n\n');
-        const blob = new Blob([text], { type: 'text/plain' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `steveai_${userId}_chat.txt`;
-        link.click();
-      };
+    exportBtn.onclick=()=>{
+      const txt=messages.map(m=>`${m.from=="user"?"You":"SteveAI"}: ${m.text}`).join("\n\n");
+      const blob=new Blob([txt],{type:"text/plain"}), a=document.createElement("a");
+      a.href=URL.createObjectURL(blob);a.download=`chat_${userId}.txt`;a.click();
+    };
 
-      logoutBtn.onclick = () => signOut(auth).then(() => window.location = 'login.html');
-    </script>
-  </body>
+    regenerateBtn.onclick=()=>{if(lastPrompt)send();};
+
+    shareBtn.onclick=()=>{
+      const data=btoa(JSON.stringify(messages));
+      prompt("Copy this link:",`${location.origin+location.pathname}?share=${data}`);
+    };
+
+    logoutBtn.onclick=()=>signOut(auth).then(()=>window.location="login.html");
+
+    // Load shared chat from URL
+    const p=new URLSearchParams(location.search).get("share");
+    if(p){
+      try{
+        const m=JSON.parse(atob(p));
+        chatBox.innerHTML="";messages=m;messages.forEach(createBubble);
+      }catch{}
+    }
+  </script>
+</body>
 </html>
