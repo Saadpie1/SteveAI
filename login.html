@@ -1,26 +1,48 @@
+<!-- login.html -->
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8" />
   <title>Login - SteveAI</title>
+  <style>
+    body {
+      background: #121212;
+      color: white;
+      text-align: center;
+      padding: 50px;
+      font-family: sans-serif;
+    }
+    input, button {
+      margin: 10px;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      width: 250px;
+    }
+    button {
+      background-color: #00e5ff;
+      color: black;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
   <h2>Login to SteveAI</h2>
-  <form id="login-form">
-    <input type="email" id="email" placeholder="Email" required /><br />
-    <input type="password" id="password" placeholder="Password" required /><br />
-    <button type="submit">Login</button>
-  </form>
-  <button id="google-login">Login with Google</button>
+  <input type="email" id="email" placeholder="Email" /><br/>
+  <input type="password" id="password" placeholder="Password" /><br/>
+  <button onclick="login()">Log In</button>
+  <br/><br/>
+  <a href="signup.html">Don't have an account? Sign up</a>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCUic123GTi1M82hV_7txQ8xTbBVfjn3r8",
       authDomain: "steveai-f4a56.firebaseapp.com",
       projectId: "steveai-f4a56",
-      storageBucket: "steveai-f4a56.appspot.com",
+      storageBucket: "steveai-f4a56.firebasestorage.app",
       messagingSenderId: "852076577383",
       appId: "1:852076577383:web:631149327a19283d750ac2",
       measurementId: "G-RH3XX95B41"
@@ -28,30 +50,14 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
 
-    document.getElementById("login-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
+    window.login = function () {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        alert("Logged in successfully!");
-        window.location.href = "chat.html";
-      } catch (error) {
-        alert("Login failed: " + error.message);
-      }
-    });
-
-    document.getElementById("google-login").addEventListener("click", async () => {
-      try {
-        await signInWithPopup(auth, provider);
-        alert("Google login successful!");
-        window.location.href = "chat.html";
-      } catch (error) {
-        alert("Google login failed: " + error.message);
-      }
-    });
+      signInWithEmailAndPassword(auth, email, password)
+        .then(() => window.location.href = "chat.html")
+        .catch(e => alert("Login Error: " + e.message));
+    };
   </script>
 </body>
 </html>

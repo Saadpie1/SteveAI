@@ -1,54 +1,66 @@
 <!-- signup.html -->
 <!DOCTYPE html>
 <html>
-<head><title>SteveAI - Signup</title></head>
+<head>
+  <meta charset="UTF-8" />
+  <title>Signup - SteveAI</title>
+  <style>
+    body {
+      background: #1c1c1c;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 50px;
+    }
+    input {
+      margin: 10px;
+      padding: 12px;
+      width: 250px;
+      border-radius: 8px;
+      border: none;
+    }
+    button {
+      padding: 12px 20px;
+      border: none;
+      background-color: #00e676;
+      color: black;
+      font-weight: bold;
+      border-radius: 8px;
+    }
+  </style>
+</head>
 <body>
-  <h2>Signup</h2>
-  <form id="signup-form">
-    <input type="email" id="email" placeholder="Email" required /><br />
-    <input type="password" id="password" placeholder="Password" required /><br />
-    <button type="submit">Sign Up</button>
-  </form>
-  <button id="google-signup">Sign Up with Google</button>
+  <h2>Sign up to SteveAI</h2>
+  <input type="email" id="email" placeholder="Email" /><br/>
+  <input type="password" id="password" placeholder="Password" /><br/>
+  <button onclick="signup()">Sign Up</button>
+  <br/><br/>
+  <a href="login.html">Already have an account? Log in</a>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCUic123GTi1M82hV_7txQ8xTbBVfjn3r8",
       authDomain: "steveai-f4a56.firebaseapp.com",
       projectId: "steveai-f4a56",
-      storageBucket: "steveai-f4a56.appspot.com",
+      storageBucket: "steveai-f4a56.firebasestorage.app",
       messagingSenderId: "852076577383",
-      appId: "1:852076577383:web:631149327a19283d750ac2"
+      appId: "1:852076577383:web:631149327a19283d750ac2",
+      measurementId: "G-RH3XX95B41"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
 
-    document.getElementById("signup-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
+    window.signup = function () {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
-      try {
-        await createUserWithEmailAndPassword(auth, email, password);
-        alert("Signed up!");
-        window.location.href = "chat.html";
-      } catch (error) {
-        alert(error.message);
-      }
-    });
-
-    document.getElementById("google-signup").addEventListener("click", async () => {
-      try {
-        await signInWithPopup(auth, provider);
-        window.location.href = "chat.html";
-      } catch (error) {
-        alert(error.message);
-      }
-    });
+      createUserWithEmailAndPassword(auth, email, password)
+        .then(() => window.location.href = "chat.html")
+        .catch(e => alert("Signup Error: " + e.message));
+    };
   </script>
 </body>
 </html>

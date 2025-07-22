@@ -3,26 +3,37 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>SteveAI Dashboard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
-      background-color: #0f0f0f;
-      color: #d4f4dd;
+      margin: 0;
+      background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
+      color: white;
       font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
     }
-    .card {
-      background-color: #1f2f1f;
+    h1 { font-size: 3em; margin-bottom: 20px; }
+    .btn {
+      background: #00c853;
+      padding: 12px 30px;
+      color: black;
+      text-decoration: none;
+      font-weight: bold;
+      border-radius: 30px;
+      margin: 10px;
+      display: inline-block;
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center px-4">
-  <h1 class="text-4xl font-bold mb-4 text-green-400">🌱 Welcome to SteveAI</h1>
-  <p class="mb-6 text-center max-w-xl">Your personal AI companion powered by Firestore, Markdown, and voice synthesis.</p>
-  <div class="flex gap-4">
-    <a href="chat.html" class="bg-green-600 hover:bg-green-500 text-white px-6 py-3 rounded shadow">Go to Chat</a>
-    <a href="login.html" class="bg-gray-700 hover:bg-gray-600 text-white px-6 py-3 rounded shadow">Login</a>
-    <a href="signup.html" class="bg-gray-700 hover:bg-gray-600 text-white px-6 py-3 rounded shadow">Sign Up</a>
-  </div>
+<body>
+  <h1>Welcome to SteveAI 🤖</h1>
+  <a href="signup.html" class="btn">Sign Up</a>
+  <a href="login.html" class="btn">Log In</a>
 </body>
 </html>
